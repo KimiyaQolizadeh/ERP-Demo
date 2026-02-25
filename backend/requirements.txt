@@ -1,0 +1,26 @@
+# Web API
+fastapi==0.115.6
+uvicorn[standard]==0.30.6
+
+# Config
+python-dotenv==1.0.1
+
+# Database (SQLAlchemy 2 + Postgres)
+sqlalchemy==2.0.36
+psycopg[binary]==3.2.1
+
+# Data generation (seed fake data)
+Faker==25.9.1
+
+# HTTP client (optional, useful for internal calls/tests)
+requests==2.32.3
+httpx<0.28
+
+# AI (optional - safe to keep even if you don't set OPENAI_API_KEY)
+openai==1.40.6
+langgraph==0.2.38
+python-multipart==0.0.22
+pyyaml==6.0.2
+
+# (Optional but recommended) Testing
+pytest==8.3.2
