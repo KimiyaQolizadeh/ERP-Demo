@@ -10,6 +10,7 @@ from components.design_system import apply_theme, chip, section
 
 load_dotenv()
 BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
+DEFAULT_DISCIPLINE_CHOICES = ["Mechanical", "Electrical", "Civil", "PM"]
 
 
 def _period_signature(project_id: str, period_start: date, period_end: date) -> str:
@@ -174,6 +175,9 @@ if not projects:
 current_user = next((u for u in users if str(u.get("id")) == str(user_id)), None)
 employee_discipline = str((current_user or {}).get("discipline") or "PM")
 employee_name = str((current_user or {}).get("name") or "Current user")
+voice_discipline_choices = [employee_discipline] + [
+    d for d in DEFAULT_DISCIPLINE_CHOICES if d != employee_discipline
+]
 
 project_by_id = {p["id"]: p for p in projects}
 proj_ids = list(project_by_id.keys())
@@ -321,6 +325,9 @@ with add_col:
             st.error(str(e))
 
 section("Speak to Create Entry", "Press once, speak, and AI will create the entry for the current draft.")
+voice_notice = str(st.session_state.pop("ts_voice_apply_notice", "") or "").strip()
+if voice_notice:
+    st.success(voice_notice)
 if hasattr(st, "audio_input"):
     speech_audio = st.audio_input(
         "Speak to create entry", key="ts_voice_single_button"
@@ -334,7 +341,7 @@ if hasattr(st, "audio_input"):
                 voice_resp = api.ai_voice_parse(
                     wav_bytes=audio_bytes,
                     week_start=str(period_start),
-                    discipline_choices=[employee_discipline],
+                    discipline_choices=voice_discipline_choices,
                     project_name=project_name,
                 )
                 transcript = str(voice_resp.get("transcript", "")).strip()
@@ -360,6 +367,10 @@ if hasattr(st, "audio_input"):
                         f"Added {applied} voice entr{'y' if applied == 1 else 'ies'} to draft {draft_id[:8]}."
                     )
                     st.session_state["ts_voice_followup_question"] = ""
+                    st.session_state["ts_voice_apply_notice"] = (
+                        f"Added {applied} voice entr{'y' if applied == 1 else 'ies'} to draft {draft_id[:8]}."
+                    )
+                    st.rerun()
             except APIError as e:
                 st.error(str(e))
 else:
@@ -382,7 +393,7 @@ if st.session_state.get("ts_voice_followup_question"):
                 parsed = api.ai_parse_timesheet_text(
                     combined,
                     str(period_start),
-                    [employee_discipline],
+                    voice_discipline_choices,
                     [{"project_id": project_id, "project_name": project_name}],
                 )
                 entries_raw = parsed.get("result", {}).get("entries", [])
@@ -407,7 +418,35 @@ if st.session_state.get("ts_voice_followup_question"):
                     )
                     st.session_state["ts_voice_followup_question"] = ""
                     st.session_state["ts_voice_followup_details"] = ""
+                    st.session_state["ts_voice_apply_notice"] = (
+                        f"Added {applied} follow-up entr{'y' if applied == 1 else 'ies'} to draft {draft_id[:8]}."
+                    )
+                    st.rerun()
             except APIError as e:
                 st.error(str(e))
+
+section("Draft Entry Preview", "Latest entries currently saved on this draft timesheet.")
+preview_draft_id = _get_active_draft(signature)
+if not preview_draft_id:
+    st.caption("Create or update a draft to see entry preview.")
+else:
+    try:
+        preview_rows = api.list_time_entries(preview_draft_id)
+        if not preview_rows:
+            st.caption("No entries on this draft yet.")
+        else:
+            preview_data = [
+                {
+                    "Work Date": str(row.get("work_date") or ""),
+                    "Discipline": str(row.get("discipline") or ""),
+                    "Hours": float(row.get("hours") or 0.0),
+                    "Billable": bool(row.get("billable")),
+                    "Notes": str(row.get("notes") or ""),
+                }
+                for row in preview_rows
+            ]
+            st.dataframe(preview_data, use_container_width=True, hide_index=True)
+    except APIError as e:
+        st.error(str(e))
 
 st.caption(f"Current user: {employee_name} ({employee_discipline})")
