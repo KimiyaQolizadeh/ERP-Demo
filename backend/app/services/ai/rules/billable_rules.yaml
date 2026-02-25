@@ -1,0 +1,164 @@
+billable:
+  - phrase: "client"
+    weight: 2.0
+  - phrase: "client call"
+    weight: 2.0
+  - phrase: "client meeting"
+    weight: 2.0
+  - phrase: "client coordination"
+    weight: 2.2
+  - phrase: "site coordination"
+    weight: 2.2
+  - phrase: "deliverable"
+    weight: 2.0
+  - phrase: "submission"
+    weight: 1.8
+  - phrase: "issued for review"
+    weight: 2.0
+  - phrase: "issued for construction"
+    weight: 2.5
+  - phrase: "design review"
+    weight: 1.5
+  - phrase: "model review"
+    weight: 1.6
+  - phrase: "drawing review"
+    weight: 1.7
+  - phrase: "design development"
+    weight: 1.8
+  - phrase: "engineering calculation"
+    weight: 2.3
+  - phrase: "load calculation"
+    weight: 2.2
+  - phrase: "pressure drop calculation"
+    weight: 2.3
+  - phrase: "pipe sizing"
+    weight: 2.1
+  - phrase: "duct sizing"
+    weight: 2.1
+  - phrase: "pump selection"
+    weight: 2.0
+  - phrase: "equipment schedule"
+    weight: 1.9
+  - phrase: "hvac layout"
+    weight: 2.0
+  - phrase: "mechanical room layout"
+    weight: 2.0
+  - phrase: "isometric"
+    weight: 1.8
+  - phrase: "p&id"
+    weight: 2.1
+  - phrase: "piping"
+    weight: 1.7
+  - phrase: "asme"
+    weight: 1.6
+  - phrase: "api standard"
+    weight: 1.5
+  - phrase: "stress analysis"
+    weight: 2.3
+  - phrase: "finite element"
+    weight: 2.1
+  - phrase: "foundation design"
+    weight: 2.2
+  - phrase: "rebar detailing"
+    weight: 2.1
+  - phrase: "concrete design"
+    weight: 2.1
+  - phrase: "stormwater"
+    weight: 1.9
+  - phrase: "grading plan"
+    weight: 2.0
+  - phrase: "earthwork"
+    weight: 1.9
+  - phrase: "drainage"
+    weight: 1.8
+  - phrase: "civil design"
+    weight: 2.0
+  - phrase: "shop drawing review"
+    weight: 2.1
+  - phrase: "rfi response"
+    weight: 2.2
+  - phrase: "submittal review"
+    weight: 2.1
+  - phrase: "field verification"
+    weight: 2.0
+  - phrase: "site visit report"
+    weight: 2.0
+  - phrase: "commissioning"
+    weight: 2.0
+  - phrase: "qa qc review"
+    weight: 1.7
+  - phrase: "site visit"
+    weight: 2.0
+  - phrase: "coordination"
+    weight: 1.0
+  - phrase: "coordination meeting"
+    weight: 1.8
+  - phrase: "construction support"
+    weight: 1.8
+  - phrase: "change order pricing"
+    weight: 2.0
+  - phrase: "scope clarification"
+    weight: 1.8
+  - phrase: "progress report to client"
+    weight: 2.0
+non_billable:
+  - phrase: "internal"
+    weight: 2.0
+  - phrase: "internal meeting"
+    weight: 2.2
+  - phrase: "internal coordination"
+    weight: 1.8
+  - phrase: "training"
+    weight: 2.5
+  - phrase: "learning"
+    weight: 1.8
+  - phrase: "course"
+    weight: 1.8
+  - phrase: "workshop"
+    weight: 1.7
+  - phrase: "admin"
+    weight: 2.0
+  - phrase: "administrative"
+    weight: 2.0
+  - phrase: "timesheet"
+    weight: 2.2
+  - phrase: "expense report"
+    weight: 2.1
+  - phrase: "it support"
+    weight: 2.0
+  - phrase: "office cleanup"
+    weight: 1.8
+  - phrase: "proposal"
+    weight: 2.0
+  - phrase: "business development"
+    weight: 2.3
+  - phrase: "marketing"
+    weight: 2.0
+  - phrase: "sales"
+    weight: 2.0
+  - phrase: "interview"
+    weight: 1.8
+  - phrase: "hiring"
+    weight: 1.8
+  - phrase: "recruitment"
+    weight: 1.8
+  - phrase: "bench"
+    weight: 1.9
+  - phrase: "resource planning"
+    weight: 1.8
+  - phrase: "general meeting"
+    weight: 1.7
+  - phrase: "town hall"
+    weight: 1.8
+  - phrase: "holiday"
+    weight: 2.5
+  - phrase: "pto"
+    weight: 2.5
+  - phrase: "sick leave"
+    weight: 2.5
+  - phrase: "leave"
+    weight: 2.0
+  - phrase: "non billable"
+    weight: 2.8
+  - phrase: "recruiting"
+    weight: 2.0
