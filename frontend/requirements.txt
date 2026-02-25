@@ -1,0 +1,6 @@
+streamlit-webrtc==0.47.7
+av==12.3.0
+requests
+python-dotenv
+pandas
+httpx<0.28
