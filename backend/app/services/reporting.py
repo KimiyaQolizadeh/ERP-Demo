@@ -24,6 +24,20 @@ def _month_shift(value: date, months: int) -> date:
     return date(year, month, 1)
 
 
+def _invoice_readiness_totals(rows: list[tuple[TimeEntry, Timesheet]]) -> tuple[float, float, float]:
+    submitted_billable = 0.0
+    approved_billable = 0.0
+    for entry, ts in rows:
+        hours = float(entry.hours or 0.0)
+        status = str(ts.status or "")
+        if status in ("SUBMITTED", "APPROVED"):
+            submitted_billable += hours
+        if status == "APPROVED":
+            approved_billable += hours
+    readiness = (approved_billable / submitted_billable) if submitted_billable > 0 else 0.0
+    return submitted_billable, approved_billable, readiness
+
+
 def _scoped_projects(db: Session, user=None) -> list[Project]:
     q = db.query(Project)
     if user is None:
@@ -214,9 +228,6 @@ def invoice_readiness(db: Session, month: date, user=None):
     out = []
 
     for p in projects:
-        submitted_billable = 0.0
-        approved_billable = 0.0
-
         rows = (
             db.query(TimeEntry, Timesheet)
             .join(Timesheet, Timesheet.id == TimeEntry.timesheet_id)
@@ -226,14 +237,7 @@ def invoice_readiness(db: Session, month: date, user=None):
             .all()
         )
 
-        for e, ts in rows:
-            h = float(e.hours)
-            if ts.status in ("SUBMITTED", "APPROVED"):
-                submitted_billable += h
-            if ts.status == "APPROVED":
-                approved_billable += h
-
-        readiness = (approved_billable / submitted_billable) if submitted_billable > 0 else 0.0
+        submitted_billable, approved_billable, readiness = _invoice_readiness_totals(rows)
         out.append({
             "project_id": str(p.id),
             "project_name": p.project_name,

@@ -12,7 +12,15 @@ from app.utils.money import safe_mul, round_money
 
 def _aggregate_hours_by_discipline(eligible_rows: list[tuple[TimeEntry, Timesheet]]) -> dict[str, float]:
     agg: dict[str, float] = {}
-    for entry, _ts in eligible_rows:
+    for entry, ts in eligible_rows:
+        # Defense in depth: invoice math must only consider approved, billable,
+        # uninvoiced entries even if upstream query constraints change.
+        if str(ts.status or "") != "APPROVED":
+            continue
+        if not bool(entry.billable):
+            continue
+        if entry.invoiced_line_id is not None:
+            continue
         key = str(entry.discipline)
         agg[key] = agg.get(key, 0.0) + float(entry.hours)
     return agg

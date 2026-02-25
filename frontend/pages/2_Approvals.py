@@ -74,33 +74,53 @@ else:
     st.dataframe(display_df, use_container_width=True, height=300, hide_index=True)
 
 section("Approve / Reject", "Use explicit action with reason for rejects.")
-pending_ids = [r.get("id", "") for r in rows if r.get("id")]
-selected = st.selectbox("Pending Timesheet ID", ["(enter manually)"] + pending_ids, key="appr_pending_select")
-if selected != "(enter manually)":
-    st.session_state["appr_ts_id"] = selected
-ts_id = st.text_input("Timesheet ID", key="appr_ts_id")
+
+
+def _pending_label(row: dict) -> str:
+    employee_name = str(row.get("employee_name") or "Unknown employee")
+    project_name = str(row.get("project_name") or "Unknown project")
+    period_start = str(row.get("period_start") or "")
+    period_end = str(row.get("period_end") or "")
+    billable_hours = float(row.get("total_billable_hours") or 0.0)
+    return (
+        f"{employee_name} - {project_name} - "
+        f"{period_start} -> {period_end} - billable hours: {billable_hours:.1f}"
+    )
+
+
+pending_options = [row for row in rows if row.get("id")]
+selected_row = st.selectbox(
+    "Pending Timesheets",
+    pending_options,
+    format_func=_pending_label,
+    key="appr_pending_select",
+    disabled=not bool(pending_options),
+)
+ts_id = str(selected_row.get("id")) if selected_row else ""
 reason = st.text_input("Reject reason", value="Missing detail in notes", key="appr_reject_reason")
 
 action_left, action_right = st.columns(2)
 with action_left:
     if st.button("Approve", use_container_width=True, type="primary"):
-        if not ts_id.strip():
-            st.warning("Enter or select a timesheet ID.")
+        if not ts_id:
+            st.warning("Select a pending timesheet.")
         else:
             try:
-                st.json(api.approve_timesheet(ts_id.strip()))
+                st.json(api.approve_timesheet(ts_id))
                 st.success("Timesheet approved.")
+                st.rerun()
             except APIError as e:
                 st.error(str(e))
 
 with action_right:
     if st.button("Reject", use_container_width=True):
-        if not ts_id.strip():
-            st.warning("Enter or select a timesheet ID.")
+        if not ts_id:
+            st.warning("Select a pending timesheet.")
         else:
             try:
-                st.json(api.reject_timesheet(ts_id.strip(), reason))
+                st.json(api.reject_timesheet(ts_id, reason))
                 st.warning("Timesheet rejected.")
+                st.rerun()
             except APIError as e:
                 st.error(str(e))
 
