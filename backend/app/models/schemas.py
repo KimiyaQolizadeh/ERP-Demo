@@ -85,6 +85,7 @@ class TimesheetOut(BaseModel):
     employee_name: Optional[str] = None
     project_id: str
     project_name: Optional[str] = None
+    owner_notes: Optional[str] = None
     period_start: date
     period_end: date
     status: str

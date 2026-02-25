@@ -8,6 +8,32 @@ from app.models.tables import Project, TimeEntry, Timesheet, User
 from app.services import authz
 
 
+def _summarize_owner_notes(note_texts: list[str], max_len: int = 600) -> str | None:
+    unique_notes: list[str] = []
+    for raw in note_texts:
+        note = str(raw or "").strip()
+        if note and note not in unique_notes:
+            unique_notes.append(note)
+    if not unique_notes:
+        return None
+    owner_notes = " | ".join(unique_notes)
+    if len(owner_notes) > max_len:
+        if max_len <= 3:
+            return "." * max_len
+        return f"{owner_notes[: max_len - 3]}..."
+    return owner_notes
+
+
+def owner_notes_for_timesheet(db: Session, timesheet_id: str) -> str | None:
+    rows = (
+        db.query(TimeEntry.notes)
+        .filter(TimeEntry.timesheet_id == timesheet_id)
+        .order_by(TimeEntry.work_date.asc(), TimeEntry.id.asc())
+        .all()
+    )
+    return _summarize_owner_notes([str(row[0] or "") for row in rows])
+
+
 def _get_timesheet_and_project(db: Session, timesheet_id: str) -> tuple[Timesheet, Project]:
     row = (
         db.query(Timesheet, Project)
@@ -56,6 +82,18 @@ def list_pending_for_pm_with_hours(db: Session, user) -> list[dict]:
         }
 
     timesheet_ids = [ts.id for ts in rows]
+    note_rows = (
+        db.query(TimeEntry.timesheet_id, TimeEntry.notes)
+        .filter(TimeEntry.timesheet_id.in_(timesheet_ids))
+        .order_by(TimeEntry.timesheet_id.asc(), TimeEntry.work_date.asc(), TimeEntry.id.asc())
+        .all()
+    )
+    notes_by_id: dict[str, list[str]] = {}
+    for note_row in note_rows:
+        timesheet_id = str(note_row.timesheet_id)
+        notes = notes_by_id.setdefault(timesheet_id, [])
+        notes.append(str(note_row.notes or ""))
+
     aggregates = (
         db.query(
             TimeEntry.timesheet_id.label("timesheet_id"),
@@ -95,11 +133,13 @@ def list_pending_for_pm_with_hours(db: Session, user) -> list[dict]:
         totals = aggregate_by_id.get(
             str(ts.id), {"total_hours": 0.0, "total_billable_hours": 0.0}
         )
+        owner_notes = _summarize_owner_notes(notes_by_id.get(str(ts.id), []))
         out.append(
             {
                 "timesheet": ts,
                 "employee_name": resolved_employee_name,
                 "project_name": resolved_project_name,
+                "owner_notes": owner_notes or None,
                 **totals,
             }
         )

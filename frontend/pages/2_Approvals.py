@@ -53,6 +53,7 @@ else:
     display_cols = [
         "employee_name",
         "project_name",
+        "owner_notes",
         "period_start",
         "period_end",
         "status",
@@ -64,6 +65,7 @@ else:
         columns={
             "employee_name": "Employee",
             "project_name": "Project",
+            "owner_notes": "Notes",
             "period_start": "Period Start",
             "period_end": "Period End",
             "status": "Status",
