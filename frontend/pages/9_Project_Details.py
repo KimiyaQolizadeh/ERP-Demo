@@ -70,7 +70,9 @@ project_ids = [p["id"] for p in projects]
 default_project_id = st.session_state.get("context_project_id")
 default_index = project_ids.index(default_project_id) if default_project_id in project_ids else 0
 
-nav_left, nav_mid, nav_right = st.columns([1, 1, 1.2])
+selected_label = project_labels[default_index]
+
+nav_left, nav_mid = st.columns([1, 1])
 with nav_left:
     if st.button("Back to Projects", use_container_width=True):
         try:
@@ -83,8 +85,6 @@ with nav_mid:
             st.switch_page("pages/8_Project_Edit.py")
         except Exception:
             st.caption("Open `pages/8_Project_Edit.py` from the sidebar.")
-with nav_right:
-    selected_label = st.selectbox("Project", project_labels, index=default_index, key="project_detail_pick")
 
 selected_project = project_map[selected_label]
 project_id = selected_project["id"]
@@ -96,6 +96,19 @@ try:
 except APIError as e:
     st.error(str(e))
     st.stop()
+
+pm_name_by_id: dict[str, str] = {}
+try:
+    users = api.list_users()
+    pm_name_by_id = {
+        str(u.get("id")): str(u.get("name") or "Unassigned")
+        for u in users
+        if str(u.get("role", "")).upper() in {"PM", "ADMIN"}
+    }
+except APIError:
+    pm_name_by_id = {}
+pm_user_id = str(detail.get("pm_user_id") or "")
+pm_display_name = pm_name_by_id.get(pm_user_id, pm_user_id or "-")
 
 default_month = _as_date(st.session_state.get("context_month"))
 month_ctx = st.date_input("Month context", value=default_month, key="project_detail_month")
@@ -128,7 +141,7 @@ with left:
     st.markdown(f"**Client:** {detail.get('client_name', '-')}")
     st.markdown(f"**Division:** {detail.get('division', '-')}")
     st.markdown(f"**Discipline:** {detail.get('discipline', '-')}")
-    st.markdown(f"**Project Manager ID:** {detail.get('pm_user_id', '-')}")
+    st.markdown(f"**Project Manager:** {pm_display_name}")
 with right:
     st.markdown(f"**Contract Type:** {str(detail.get('contract_type', '')).replace('_', ' ').title()}")
     st.markdown(f"**Start Date:** {detail.get('start_date', '-')}")
