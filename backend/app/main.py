@@ -74,6 +74,17 @@ def _ensure_schema_compatibility() -> None:
                 "ALTER TABLE timesheets ADD COLUMN IF NOT EXISTS employee_name VARCHAR(200)"
             )
         )
+        conn.execute(
+            text(
+                """
+                UPDATE timesheets t
+                SET employee_name = u.name
+                FROM users u
+                WHERE t.employee_id = u.id
+                  AND (t.employee_name IS NULL OR btrim(t.employee_name) = '')
+                """
+            )
+        )
 
 def run():
     uvicorn.run("app.main:app", host=BACKEND_HOST, port=BACKEND_PORT, reload=True)

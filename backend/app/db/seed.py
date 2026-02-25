@@ -168,6 +168,19 @@ def seed():
                 ))
             db.commit()
 
+    db.execute(
+        text(
+            """
+            UPDATE timesheets t
+            SET employee_name = u.name
+            FROM users u
+            WHERE t.employee_id = u.id
+              AND (t.employee_name IS NULL OR btrim(t.employee_name) = '')
+            """
+        )
+    )
+    db.commit()
+
     print("Seed complete.")
     print(f"Users: {db.query(User).count()}, Projects: {db.query(Project).count()}, Timesheets: {db.query(Timesheet).count()}, Entries: {db.query(TimeEntry).count()}")
     db.close()

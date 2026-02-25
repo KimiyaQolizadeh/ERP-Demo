@@ -3,7 +3,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from app.models.tables import Project, Timesheet, TimeEntry
+from app.models.tables import Project, Timesheet, TimeEntry, User
 from app.services import authz
 
 def create_timesheet(db: Session, user, project_id, period_start, period_end) -> Timesheet:
@@ -49,6 +49,17 @@ def submit_timesheet(db: Session, user, timesheet_id) -> Timesheet:
         raise HTTPException(status_code=403, detail="Not allowed to submit")
     if ts.status != "DRAFT":
         raise HTTPException(status_code=400, detail="Only draft timesheets can be submitted")
+    # Keep a stable display label on submitted records for approvals/inbox UX.
+    if ts.employee_id == user.id:
+        ts.employee_name = user.name
+    elif not str(ts.employee_name or "").strip():
+        owner_name = (
+            db.query(User.name)
+            .filter(User.id == ts.employee_id)
+            .scalar()
+        )
+        if owner_name:
+            ts.employee_name = str(owner_name)
     ts.status = "SUBMITTED"
     ts.submitted_at = datetime.utcnow()
     db.commit()

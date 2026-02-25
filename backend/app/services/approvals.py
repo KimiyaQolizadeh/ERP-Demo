@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy import case, func
 from sqlalchemy.orm import Session
 
-from app.models.tables import Project, TimeEntry, Timesheet
+from app.models.tables import Project, TimeEntry, Timesheet, User
 from app.services import authz
 
 
@@ -40,6 +40,21 @@ def list_pending_for_pm_with_hours(db: Session, user) -> list[dict]:
     if not rows:
         return []
 
+    project_ids = {ts.project_id for ts in rows if getattr(ts, "project_id", None) is not None}
+    employee_ids = {ts.employee_id for ts in rows if getattr(ts, "employee_id", None) is not None}
+    project_name_by_id: dict[str, str] = {}
+    employee_name_by_id: dict[str, str] = {}
+    if project_ids:
+        project_name_by_id = {
+            str(pid): str(pname)
+            for pid, pname in db.query(Project.id, Project.project_name).filter(Project.id.in_(project_ids)).all()
+        }
+    if employee_ids:
+        employee_name_by_id = {
+            str(uid): str(uname)
+            for uid, uname in db.query(User.id, User.name).filter(User.id.in_(employee_ids)).all()
+        }
+
     timesheet_ids = [ts.id for ts in rows]
     aggregates = (
         db.query(
@@ -68,11 +83,28 @@ def list_pending_for_pm_with_hours(db: Session, user) -> list[dict]:
     }
 
     out: list[dict] = []
+    names_backfilled = False
     for ts in rows:
+        resolved_employee_name = str(
+            ts.employee_name or employee_name_by_id.get(str(ts.employee_id)) or "Unknown employee"
+        )
+        resolved_project_name = str(project_name_by_id.get(str(ts.project_id)) or "Unknown project")
+        if not ts.employee_name and resolved_employee_name != "Unknown employee":
+            ts.employee_name = resolved_employee_name
+            names_backfilled = True
         totals = aggregate_by_id.get(
             str(ts.id), {"total_hours": 0.0, "total_billable_hours": 0.0}
         )
-        out.append({"timesheet": ts, **totals})
+        out.append(
+            {
+                "timesheet": ts,
+                "employee_name": resolved_employee_name,
+                "project_name": resolved_project_name,
+                **totals,
+            }
+        )
+    if names_backfilled:
+        db.commit()
     return out
 
 

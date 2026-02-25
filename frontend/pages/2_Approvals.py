@@ -50,7 +50,28 @@ section("Approval Inbox", "These rows are pending for your projects only.")
 if pending_df.empty:
     st.info("No pending approvals for this user.")
 else:
-    st.dataframe(pending_df, use_container_width=True, height=300)
+    display_cols = [
+        "employee_name",
+        "project_name",
+        "period_start",
+        "period_end",
+        "status",
+        "total_hours",
+        "total_billable_hours",
+    ]
+    display_df = pending_df[[c for c in display_cols if c in pending_df.columns]].copy()
+    display_df = display_df.rename(
+        columns={
+            "employee_name": "Employee",
+            "project_name": "Project",
+            "period_start": "Period Start",
+            "period_end": "Period End",
+            "status": "Status",
+            "total_hours": "Total Hours",
+            "total_billable_hours": "Billable Hours",
+        }
+    )
+    st.dataframe(display_df, use_container_width=True, height=300, hide_index=True)
 
 section("Approve / Reject", "Use explicit action with reason for rejects.")
 pending_ids = [r.get("id", "") for r in rows if r.get("id")]
