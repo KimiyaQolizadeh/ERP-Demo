@@ -440,30 +440,6 @@ cd backend
 .\.venv\Scripts\python -m app.db.smoke_pending_approvals
 ```
 
-## 12. Interview Demo Script (Suggested)
-
-Timebox: 10 to 15 minutes.
-
-1. Start app with `Ctrl + Shift + B` in VS Code (`Dev: Run All`).
-2. Open Home page and show role switching (employee vs PM vs finance).
-3. Employee flow:
-   - Create draft timesheet
-   - Use `Improve notes (AI)`
-   - Use voice input to create entry
-   - Submit timesheet
-4. PM flow:
-   - Open Approvals page
-   - Approve submitted timesheet
-5. Invoicing flow:
-   - Draft monthly invoice
-   - Show deterministic line totals and adjustment
-6. Reporting flow:
-   - Show overview bars (budget consumed, readiness, risk)
-   - Open forecast view + AI risk explanation
-7. Copilot flow:
-   - Ask for pending approvals / project risk summary
-   - Expand and show tool trace
-8. Close with trade-offs and production hardening plan.
 
 ## 13. Troubleshooting
 
